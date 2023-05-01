@@ -42,7 +42,7 @@ def application():
     Plus_button = QPushButton("+ function")
     Minus_button = QPushButton("- function")
     func_lbl = QLabel("Function:")
-    func_le = QLineEdit("sin(x)")
+    func_le = QLineEdit("tg(x)")
     polar_lbl = QLabel("Polar coordinates:")
     
     polar_button = QCheckBox("Yes")
