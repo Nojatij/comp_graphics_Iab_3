@@ -1,11 +1,17 @@
-import sys
-import socket
 import os
-from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QGridLayout,\
-    QSlider, QPushButton, QLineEdit,QHBoxLayout, QRadioButton, QButtonGroup, QCheckBox, QMessageBox
-from PyQt6.QtCore import Qt
-import re
 import pickle
+import re
+import socket
+import sys
+import copy
+
+from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import (QApplication, QButtonGroup, QCheckBox, QComboBox,
+                             QDialog, QDialogButtonBox, QGridLayout,
+                             QHBoxLayout, QLabel, QLineEdit, QMainWindow,
+                             QMessageBox, QPushButton, QRadioButton, QSlider,
+                             QVBoxLayout, QWidget)
+
 
 class Plot:
     def __init__(self, ip, port, func, polar, min, max, amount, width, style, color, mesh):
@@ -22,25 +28,76 @@ class Plot:
         self.mesh = mesh
     
     def __add__(self, other):
-        return Plot(self.ip, self.port, self.func + other.func, min(self.min, other.min), max(self.max, other.max), max(self.amount, other.amount),\
-                    self.width, self.style, self.color, self.mesh)
+        return Plot(self.ip, self.port, self.func + '+' + other.func, self.polar, min(self.min, other.min), max(self.max, other.max), max(self.amount, other.amount), self.width, self.style, self.color, self.mesh)
     
     def __sub__(self, other):
-        return Plot(self.ip, self.port, self.func - other.func, min(self.min, other.min), max(self.max, other.max), max(self.amount, other.amount),\
-                    self.width, self.style, self.color, self.mesh)
+        return Plot(self.ip, self.port, self.func + '-' + other.func, self.polar, min(self.min, other.min), max(self.max, other.max), max(self.amount, other.amount), self.width, self.style, self.color, self.mesh)
+
+class AdditionalFunction(QDialog):
+    def __init__(self):
+        super().__init__()
+        self.func_lbl_add = QLabel("Function:")
+        self.func_le_add = QLineEdit("sin(x)")
+        self.polar_lbl_add = QLabel("Polar coordinates:")
+
+        self.combo = QComboBox()
+        self.combo.addItem("Add Function")
+        self.combo.addItem("Subtract Function")
+
+        self.polar_button_add = QCheckBox("Yes")
+        self.polar = False
+
+        def polar_button_clicked_add(checked):
+            if checked == 2:
+                self.polar = True
+            else:
+                self.polar = False
+
+        self.polar_button_add.stateChanged.connect(polar_button_clicked_add)
+
+        self.layout_add = QGridLayout()
+        self.setLayout(self.layout_add)
+
+        self.min_max_layout_add = QHBoxLayout()
+        self.min_max_wdgt_add = QWidget()
+        self.min_max_wdgt_add.setLayout(self.min_max_layout_add)
+        self.min_max_lbl_add = QLabel("Minimum, maximum and amount of x:")
+        self.min_le_add = QLineEdit('0')
+        self.max_le_add = QLineEdit('2')
+        self.amount_le_add = QLineEdit('100')
+        self.min_max_layout_add.addWidget(self.min_le_add)
+        self.min_max_layout_add.addWidget(self.max_le_add)
+        self.min_max_layout_add.addWidget(self.amount_le_add)
+        self.min_max_wdgt_add.setLayout(self.min_max_layout_add)
+
+
+        self.layout_add.addWidget(self.func_lbl_add)
+        self.layout_add.addWidget(self.func_le_add)
+        self.layout_add.addWidget(self.polar_lbl_add) 
+        self.layout_add.addWidget(self.polar_button_add)
+        self.layout_add.addWidget(self.min_max_lbl_add)
+        self.layout_add.addWidget(self.min_max_wdgt_add)
+        self.layout_add.addWidget(self.combo)
+
+        self.setWindowTitle("Additional function")
+
+        QBtn = QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+
+        self.buttonBox = QDialogButtonBox(QBtn)
+        self.buttonBox.accepted.connect(self.accept)
+        self.buttonBox.rejected.connect(self.reject)
+
+        self.layout_add.addWidget(self.buttonBox)
 
 def application():
     plot = Plot
     app = QApplication(sys.argv)
     widget = QWidget()
-
     ip_lbl = QLabel("IP:")
     ip_le = QLineEdit("localhost")
     port_lbl = QLabel("Port:")
     port_le = QLineEdit("2000")
     OK_button = QPushButton("OK")
-    Plus_button = QPushButton("+ function")
-    Minus_button = QPushButton("- function")
     func_lbl = QLabel("Function:")
     func_le = QLineEdit("tg(x)")
     polar_lbl = QLabel("Polar coordinates:")
@@ -166,10 +223,7 @@ def application():
     layout.addWidget(mesh_lbl)
     layout.addWidget(mesh_button)
     layout.addWidget(OK_button)
-    layout.addWidget(Plus_button)
-    layout.addWidget(Minus_button)
 
-    
     def send():
         plot.ip = ip_le.text()
         plot.port = int(port_le.text())
@@ -177,14 +231,50 @@ def application():
         plot.min = min_le.text()
         plot.max = max_le.text()
         plot.amount = amount_le.text()
-        data = [plot.func, plot.polar, plot.min, plot.max, plot.amount, plot.width, plot.style, plot.color, plot.mesh]
+
+        message = QMessageBox()
+        message.setText("Add function?")
+        message.setStandardButtons(QMessageBox.StandardButton.Ok| QMessageBox.StandardButton.Cancel)
+        message.setWindowTitle("I have a question!")
+        message.setIcon(QMessageBox.Icon.Question)
+        data = []
+        if message.exec() == QMessageBox.StandardButton.Ok:
+            dlg = AdditionalFunction()
+            if dlg.exec():
+                add_plot = Plot(plot.ip, plot.port, dlg.func_le_add.text(), dlg.polar, dlg.min_le_add.text(), dlg.max_le_add.text(),\
+                                 dlg.amount_le_add.text(), plot.width, plot.style, plot.color, plot.mesh)
+                plot1 = Plot(plot.ip, plot.port, plot.func, plot.polar, plot.min, plot.max, plot.amount, plot.width, plot.style, \
+                             plot.color, plot.mesh)
+                if plot1.polar != add_plot.polar:
+                    warn_message = QMessageBox()
+                    warn_message.setText("Coordinate systems do not match. Let's take the first one?")
+                    warn_message.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+                    warn_message.setWindowTitle("I have a question!")
+                    warn_message.setIcon(QMessageBox.Icon.Question)
+                    button1 = warn_message.exec()
+                    if button1 == QMessageBox.StandardButton.Yes:
+                        add_plot.polar = plot1.polar
+                    else:
+                        plot1.polar = add_plot.polar
+
+                if dlg.combo.currentIndex() == 0:
+                    answer_plot = plot1 + add_plot 
+                else:
+                    answer_plot = plot1 - add_plot      
+                data = [answer_plot.func, answer_plot.polar, answer_plot.min, answer_plot.max, answer_plot.amount, \
+                        answer_plot.width, answer_plot.style, answer_plot.color, answer_plot.mesh]     
+            else:
+                print("Cancel!")
+        else:
+            data = [plot.func, plot.polar, plot.min, plot.max, plot.amount, plot.width, plot.style, plot.color, plot.mesh]
+        print(data)
+
         with socket.create_connection((plot.ip, plot.port)) as conn:
             print("Connecting to the server...")
             print("Data transmission...")
             conn.send(pickle.dumps(data))
             print("Sent!")
         print("The connection is closed!")
-
     OK_button.clicked.connect(send)
     widget.show()
     sys.exit(app.exec())
