@@ -247,12 +247,12 @@ def application():
                              plot.color, plot.mesh)
                 if plot1.polar != add_plot.polar:
                     warn_message = QMessageBox()
-                    warn_message.setText("Coordinate systems do not match. Let's take the first one?")
-                    warn_message.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+                    warn_message.setText("Coordinate systems do not match. Should we restore the default coordinate system or apply a new one?")
+                    warn_message.setStandardButtons(QMessageBox.StandardButton.RestoreDefaults | QMessageBox.StandardButton.Apply)
                     warn_message.setWindowTitle("I have a question!")
                     warn_message.setIcon(QMessageBox.Icon.Question)
                     button1 = warn_message.exec()
-                    if button1 == QMessageBox.StandardButton.Yes:
+                    if button1 == QMessageBox.StandardButton.Apply:
                         add_plot.polar = plot1.polar
                     else:
                         plot1.polar = add_plot.polar
@@ -264,6 +264,7 @@ def application():
                 data = [answer_plot.func, answer_plot.polar, answer_plot.min, answer_plot.max, answer_plot.amount, \
                         answer_plot.width, answer_plot.style, answer_plot.color, answer_plot.mesh]     
             else:
+                data = [plot.func, plot.polar, plot.min, plot.max, plot.amount, plot.width, plot.style, plot.color, plot.mesh]
                 print("Cancel!")
         else:
             data = [plot.func, plot.polar, plot.min, plot.max, plot.amount, plot.width, plot.style, plot.color, plot.mesh]
