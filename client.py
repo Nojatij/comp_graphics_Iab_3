@@ -253,9 +253,9 @@ def application():
                     warn_message.setIcon(QMessageBox.Icon.Question)
                     button1 = warn_message.exec()
                     if button1 == QMessageBox.StandardButton.Apply:
-                        add_plot.polar = plot1.polar
-                    else:
                         plot1.polar = add_plot.polar
+                    else:
+                        add_plot.polar = plot1.polar
 
                 if dlg.combo.currentIndex() == 0:
                     answer_plot = plot1 + add_plot 
