@@ -28,10 +28,12 @@ class Plot:
         self.mesh = mesh
     
     def __add__(self, other):
-        return Plot(self.ip, self.port, self.func + '+' + other.func, self.polar, min(self.min, other.min), max(self.max, other.max), max(self.amount, other.amount), self.width, self.style, self.color, self.mesh)
+        return Plot(self.ip, self.port, self.func + '+' + other.func, self.polar, min(self.min, other.min),\
+                     max(self.max, other.max), max(self.amount, other.amount), self.width, self.style, self.color, self.mesh)
     
     def __sub__(self, other):
-        return Plot(self.ip, self.port, self.func + '-' + other.func, self.polar, min(self.min, other.min), max(self.max, other.max), max(self.amount, other.amount), self.width, self.style, self.color, self.mesh)
+        return Plot(self.ip, self.port, self.func + '-' + other.func, self.polar, min(self.min, other.min),\
+                     max(self.max, other.max), max(self.amount, other.amount), self.width, self.style, self.color, self.mesh)
 
 class AdditionalFunction(QDialog):
     def __init__(self):
@@ -234,11 +236,11 @@ def application():
 
         message = QMessageBox()
         message.setText("Add function?")
-        message.setStandardButtons(QMessageBox.StandardButton.Ok| QMessageBox.StandardButton.Cancel)
+        message.setStandardButtons(QMessageBox.StandardButton.Yes| QMessageBox.StandardButton.No)
         message.setWindowTitle("I have a question!")
         message.setIcon(QMessageBox.Icon.Question)
         data = []
-        if message.exec() == QMessageBox.StandardButton.Ok:
+        if message.exec() == QMessageBox.StandardButton.Yes:
             dlg = AdditionalFunction()
             if dlg.exec():
                 add_plot = Plot(plot.ip, plot.port, dlg.func_le_add.text(), dlg.polar, dlg.min_le_add.text(), dlg.max_le_add.text(),\
